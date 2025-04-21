@@ -1,0 +1,27 @@
+services:
+  audiomate:
+    container_name: audiomate
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./app:/app
+      - ./uploads:/app/uploads
+      - whisper_cache:/root/.cache
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    # Tip futuro:
+    # depends_on:
+    #   - db
+    # networks:
+    #   - audiomate_net
+
+# networks:
+#   audiomate_net:
+#     driver: bridge
+
+volumes:
+  whisper_cache:
