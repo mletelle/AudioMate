@@ -3,3 +3,4 @@ pydub
 openai-whisper
 torch
 python-docx
+pytest
