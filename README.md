@@ -19,20 +19,24 @@ cd AudioMate
 # 2. Levantá el entorno con Docker Compose
 docker-compose up --build
 ````
-Listo! Abrí tu navegador en: http://localhost:8501 
+> ⚠️ **Importante:** la primera vez que ejecutes `docker-compose up --build`, la construcción de la imagen puede tardar **20-40 minutos**, dependiendo de tu conexión a Internet y la potencia de tu equipo.  
+> Esto se debe a que se descargan librerías pesadas como `torch`, `nvidia-cusparse`, `ffmpeg` y otras dependencias de audio y GPU.
+> Una vez construido, los siguientes levantamientos serán mucho más rápidos gracias al cache de Docker 🐳.
+
+- Listo! Abrí tu navegador en: http://localhost:8501 
 
 ---
 ## Uso paso a paso
 1. Subí tu archivo de audio
-  - Formatos soportados: MP3, WAV, M4A
-  - Tamaño máximo: 200 MB
+    - Formatos soportados: MP3, WAV, M4A
+    - Tamaño máximo: 200 MB
 2. Transcribí automáticamente 
-  - AudioMate convierte tu audio automáticamente a WAV mono (16 kHz)
-  - Whisper genera la transcripción localmente.
+    - AudioMate convierte tu audio automáticamente a WAV mono (16 kHz)
+    - Whisper genera la transcripción localmente.
 3. Descargá tu texto 
-  - Disponibles formatos:
-    - .txt (texto simple)
-    - .docx (Word)
+    - Disponibles formatos:
+      - .txt (texto simple)
+      - .docx (Word)
 
 ---
 ## Querés contribuir?
