@@ -1,0 +1,21 @@
+# Entornos virtuales
+venv/
+.env/
+*.env
+
+# Archivos de log
+*.log
+logs/
+
+# Archivos temporales
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.swp
+
+# Archivos de configuración personal
+.DS_Store
+.idea/
+.vscode/
+*.sqlite3
