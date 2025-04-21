@@ -1,21 +1,66 @@
+# =======================================
+# Python / General
+# =======================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.swp
+
 # Entornos virtuales
 venv/
 .env/
 *.env
 
-# Archivos de log
+# Logs
 *.log
 logs/
 
-# Archivos temporales
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.swp
+# Archivos temporales y backups
+*.bak
+*.tmp
 
 # Archivos de configuración personal
 .DS_Store
 .idea/
 .vscode/
 *.sqlite3
+
+# =======================================
+# Streamlit
+# =======================================
+.streamlit/config.toml
+.streamlit/secrets.toml
+
+# =======================================
+# Archivos generados por AudioMate
+# =======================================
+app/uploads/*
+!app/uploads/.gitkeep
+
+# Archivos exportados
+*.wav
+*.mp3
+*.txt
+*.docx
+procesados.json
+audiomate.log
+
+# =======================================
+# Docker / Whisper
+# =======================================
+*.pid
+*.sock
+
+# Cache de modelos (volumen montado o local)
+root/.cache/
+~/.cache/
+whisper_cache/
+
+# =======================================
+# Pytest / Coverage
+# =======================================
+.coverage
+.cache/
+htmlcov/
+tests/__pycache__/
