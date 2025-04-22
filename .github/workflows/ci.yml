@@ -12,21 +12,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      # 1) Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      # ── Instala ffmpeg/ffprobe y libsndfile para tests ───────────
-      - name: Install ffmpeg & libsndfile1
+      # 2) Instalar ffmpeg/ffprobe + libsndfile (¡antes de Python!)
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg libsndfile1
 
+      # 3) Setup Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
+      # 4) Instalar librerías Python
       - name: Install Python dependencies
-        run: pip install --no-cache-dir -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir -r requirements.txt
 
+      # 5) Ejecutar tests
       - name: Run tests
-        run: pytest --maxfail=1 --disable-warnings -q
+        run: |
+          pytest --maxfail=1 --disable-warnings -q
