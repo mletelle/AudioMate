@@ -1,6 +1,7 @@
 # AudioMate
 
-[![CI](https://img.shields.io/github/actions/workflow/status/mletelle/audiomate/ci.yml?branch=main)]()  
+[![CI](https://img.shields.io/github/actions/workflow/status/mletelle/audiomate/ci.yml?branch=main)]() 
+[![Codecov](https://img.shields.io/codecov/c/github/mletelle/AudioMate/main.svg)](https://codecov.io/gh/mletelle/AudioMate)
 [![Docker Pulls](https://img.shields.io/docker/pulls/mletelle/audiomate?cacheSeconds=300)](https://hub.docker.com/r/mletelle/audiomate)
 [![License](https://img.shields.io/github/license/mletelle/audiomate)]()
 
