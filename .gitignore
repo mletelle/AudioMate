@@ -1,6 +1,4 @@
-# =======================================
 # Python / General
-# =======================================
 __pycache__/
 *.py[cod]
 *.pyo
@@ -26,29 +24,24 @@ logs/
 .vscode/
 *.sqlite3
 
-# =======================================
 # Streamlit
-# =======================================
 .streamlit/config.toml
 .streamlit/secrets.toml
 
-# =======================================
 # Archivos generados por AudioMate
-# =======================================
 app/uploads/*
 !app/uploads/.gitkeep
 
 # Archivos exportados
 *.wav
 *.mp3
+*.m4a
 *.txt
 *.docx
 procesados.json
 audiomate.log
 
-# =======================================
 # Docker / Whisper
-# =======================================
 *.pid
 *.sock
 
@@ -57,9 +50,7 @@ root/.cache/
 ~/.cache/
 whisper_cache/
 
-# =======================================
 # Pytest / Coverage
-# =======================================
 .coverage
 .cache/
 htmlcov/

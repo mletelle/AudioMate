@@ -9,7 +9,7 @@ import whisper
 import streamlit as st
 from datetime import datetime
 from docx import Document
-from docx.shared import Pt
+
 
 # ========== Configuración inicial ==========
 logging.basicConfig(
@@ -19,16 +19,16 @@ logging.basicConfig(
 )
 
 UPLOAD_DIR = "uploads"
-MAX_FILE_SIZE = 200 * 1024 * 1024  # 200 MB
+MAX_FILE_SIZE = 1000 * 1024 * 1024  # 1000 MB
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 st.set_page_config(page_title="AudioMate", layout="centered")
-st.title("🎧 AudioMate - Transcribí tu audio a texto")
+st.title(" AudioMate - Transcribí tu audio a texto")
 
 # ========== Subida del archivo ==========
 uploaded_file = st.file_uploader(
-    "📤 Elegí un archivo de audio (MP3 o WAV)",
-    type=["mp3", "wav"],
+    " Elegí un archivo de audio (MP3, WAV o M4A)",
+    type=["mp3", "wav", "m4a"],
     accept_multiple_files=False
 )
 
@@ -40,15 +40,15 @@ if uploaded_file:
         save_path = os.path.join(UPLOAD_DIR, filename)
 
         if file_size > MAX_FILE_SIZE:
-            st.error(" El archivo supera los 200 MB permitidos.")
+            st.error(" El archivo supera los 1000 MB permitidos.")
             st.stop()
 
-        if not filename.lower().endswith((".mp3", ".wav")):
-            st.error(" Solo se permiten archivos .mp3 o .wav.")
+        if not filename.lower().endswith((".mp3", ".wav", ".m4a")):
+            st.error(" Solo se permiten archivos .mp3, .m4a o .wav.")
             st.stop()
 
         mime_type, _ = mimetypes.guess_type(filename)
-        if mime_type not in ["audio/mpeg", "audio/wav"]:
+        if mime_type not in ["audio/mpeg", "audio/wav", "audio/mp4", "audio/x-m4a"]:
             st.error(" Tipo de archivo no permitido.")
             st.stop()
 
@@ -83,58 +83,97 @@ if uploaded_file:
             return json.loads(result.stdout)
 
         info = verificar_audio(output_path)
-        st.write(f" Duración: {float(info['format']['duration']):.2f}s | 🎚 Canales: {info['streams'][0]['channels']} | 🎼 Sample Rate: {info['streams'][0]['sample_rate']} Hz")
+        st.write(f" Duración: {float(info['format']['duration']):.2f}s | Canales: {info['streams'][0]['channels']} |  Sample Rate: {info['streams'][0]['sample_rate']} Hz")
 
         # ========== Transcripción con Whisper ==========
         model = whisper.load_model("base")  # podés cambiar a "small", "medium", etc.
 
         with st.spinner(" Transcribiendo..."):
-            result = model.transcribe(output_path)
+            try:
+                result = model.transcribe(output_path)
+            except RuntimeError as e:
+                if "device-side assert triggered" in str(e):
+                    st.warning("⚠️ Falla en GPU, reintentando en CPU…")
+                    model_cpu = whisper.load_model("base", device="cpu")
+                    result = model_cpu.transcribe(output_path)
+                else:
+                    raise
 
         st.success(" Transcripción completada.")
         transcripcion = result["text"]
         segments = result["segments"]
 
         if not segments:
-            st.warning("⚠️ No se detectó habla clara en el audio.")
+            st.warning(" No se detectó habla clara en el audio.")
             st.stop()
 
         st.subheader(" Transcripción:")
         st.text_area("Texto generado", transcripcion, height=300)
 
-        for seg in segments:
-            st.write(f"[{seg['start']:.2f}s - {seg['end']:.2f}s] {seg['text']}")
+        with st.expander("Ver detalle de segmentos", expanded=False):
+            seg_text = "\n".join(
+                f"[{seg['start']:.2f}s – {seg['end']:.2f}s] {seg['text']}"
+                for seg in segments
+            )
+            st.text_area(
+                "Segmentos",
+                value=seg_text,
+                height=200
+            )
 
         # ========== Descarga de archivos ==========
         fecha = datetime.now().strftime("%Y-%m-%d")
         nombre_base = filename.rsplit('.', 1)[0]
 
         # TXT
-        txt_buffer = io.StringIO()
-        txt_buffer.write(f"Archivo original: {filename}\nFecha: {fecha}\n\n{transcripcion}")
+        txt_buffer = io.BytesIO()
+        if hasattr(transcripcion, "getvalue"):
+            transcripcion = transcripcion.getvalue()
+        contenido_txt = f"Archivo original: {filename}\nFecha: {fecha}\n\n{transcripcion}"
+        txt_buffer.write(contenido_txt.encode("utf-8"))
         txt_buffer.seek(0)
-        st.download_button("📄 Descargar como TXT", txt_buffer, f"transcripcion_{fecha}_{nombre_base}.txt", mime="text/plain")
+        txt_buffer.name = "dummy.txt"  
+        st.download_button(
+            "Descargar como TXT",
+            txt_buffer,
+            f"transcripcion_{fecha}_{nombre_base}.txt",
+            mime="text/plain"
+        )
 
-        # DOCX
+
+        # ========== DOCX ==========
         doc = Document()
-        doc.add_heading("Transcripción de audio", 0)
+        doc.add_heading("Transcripción de audio", level=0)
         doc.add_paragraph(f"Archivo original: {filename}")
         doc.add_paragraph(f"Fecha: {fecha}")
-        doc.add_paragraph("")
-        for segmento in segments:
-            doc.add_paragraph(f"[{segmento['start']:.2f}s - {segmento['end']:.2f}s] {segmento['text']}", style='List Bullet')
+        doc.add_paragraph("")  # salto de línea
+        doc.add_heading("Texto completo", level=1)
+        doc.add_paragraph(transcripcion)
+        doc.add_heading("Segmentos", level=1)
+        for seg in segments:
+            doc.add_paragraph(
+                f"[{seg['start']:.2f}s – {seg['end']:.2f}s] {seg['text']}",
+                style="List Bullet"
+            )
         docx_buffer = io.BytesIO()
         doc.save(docx_buffer)
         docx_buffer.seek(0)
-        st.download_button(" Descargar como DOCX", docx_buffer, f"transcripcion_{fecha}_{nombre_base}.docx", mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        st.download_button(
+            "Descargar como DOCX",
+            docx_buffer,
+            file_name=f"transcripcion_{fecha}_{nombre_base}.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
 
         # ========== Registro JSON de actividad ==========
         registro_path = os.path.join(UPLOAD_DIR, "procesados.json")
         registro = []
-
         if os.path.exists(registro_path):
-            with open(registro_path, "r") as f:
-                registro = json.load(f)
+            try:
+                with open(registro_path) as f:
+                    registro = json.load(f)
+            except (ValueError, json.JSONDecodeError):
+                registro = []
 
         registro.append({
             "filename": filename,
@@ -143,16 +182,20 @@ if uploaded_file:
             "transcripcion": transcripcion[:100] + "..." if len(transcripcion) > 100 else transcripcion
         })
 
-        with open(registro_path, "w") as f:
-            json.dump(registro, f, indent=2)
+        with open(registro_path, "w", encoding="utf-8") as f:
+            json.dump(registro, f, ensure_ascii=False, indent=2)
 
         # ========== Limpieza ==========
-        try:
-            os.remove(save_path)
-            os.remove(output_path)
-            st.info(" Archivos temporales eliminados.")
-        except Exception as e:
-            st.warning(f"No se pudieron eliminar los archivos temporales: {e}")
+        removed = 0
+        for f in os.listdir(UPLOAD_DIR):
+            if f.lower().endswith((".mp3", ".wav", ".m4a")):
+                fp = os.path.join(UPLOAD_DIR, f)
+                try:
+                    os.remove(fp)
+                    removed += 1
+                except Exception as e:
+                    logging.warning(f"No se pudo eliminar {fp}: {e}")
+        st.info(f"Se eliminaron {removed} archivos de audio temporales.")
 
     except Exception as e:
         st.error(f" Error inesperado: {e}")

@@ -1,6 +1,5 @@
-streamlit
+streamlit>=1.33,<2
 pydub
-openai-whisper
-torch
+openai-whisper  # usa el torch incluido en la imagen base
 python-docx
-pytest
+pytest          # sólo para tests

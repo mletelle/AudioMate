@@ -1,0 +1,6 @@
+Troubleshooting rápido
+Síntoma	Chequeo: Solución
+RuntimeError: CUDA not available dentro del contenedor	docker compose exec audiomate python -c "import torch, os; print(torch.cuda.is_available())" ⇒ debería devolver True. Si no, revisá toolkit y versión del driver.
+nvidia-smi: command not found en el test	Kit no instalado o servicio Docker sin flag --gpus all. Repetí los pasos de instalación.
+Port 8501 no responde	Ver logs: docker compose logs -f. Verificá que el host no tenga el puerto ocupado.
+

@@ -1,27 +1,26 @@
+
 services:
   audiomate:
-    container_name: audiomate
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: audiomate
     ports:
       - "8501:8501"
     volumes:
-      - ./app:/app
-      - ./uploads:/app/uploads
+      - ./app/uploads:/app/uploads
       - whisper_cache:/root/.cache
+    # —— GPU ————————————————————————————
+    deploy:                               # funciona con `docker compose` o Swarm
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
     environment:
-      - PYTHONUNBUFFERED=1
+      - CUDA_LAUNCH_BLOCKING=1
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
     restart: unless-stopped
-    # Tip futuro:
-    # depends_on:
-    #   - db
-    # networks:
-    #   - audiomate_net
-
-# networks:
-#   audiomate_net:
-#     driver: bridge
 
 volumes:
   whisper_cache:
