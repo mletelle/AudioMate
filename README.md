@@ -1,7 +1,7 @@
 # AudioMate
 
 [![CI](https://img.shields.io/github/actions/workflow/status/mletelle/audiomate/ci.yml?branch=main)]()  
-[![Docker Pulls](https://img.shields.io/docker/pulls/mletelle/audiomate)]()  
+[![Docker Pulls](https://img.shields.io/docker/pulls/mletelle/audiomate?cacheSeconds=300)](https://hub.docker.com/r/mletelle/audiomate)
 [![License](https://img.shields.io/github/license/mletelle/audiomate)]()
 
 **AudioMate** es una aplicación web local que te permite transcribir archivos de audio (MP3, WAV, M4A) a texto usando **OpenAI Whisper** y **Streamlit**.  
