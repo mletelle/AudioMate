@@ -5,8 +5,10 @@ import subprocess
 def verificar_audio(path):
     cmd = [
         "ffprobe", "-v", "error",
-        "-show_entries", "format=duration",
-        "-show_streams", "-print_format", "json", path
+        "-show_format",        # emit the full "format" block (duration, etc.)
+        "-show_streams",       # emit the "streams" array
+        "-print_format", "json",
+        path
     ]
     result = subprocess.run(cmd, capture_output=True, text=True)
     return json.loads(result.stdout)

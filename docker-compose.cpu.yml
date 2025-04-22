@@ -1,0 +1,25 @@
+# docker-compose.cpu.yml
+version: '3.8'
+
+services:
+  audiomate:
+    container_name: audiomate_cpu
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Forzamos a whisper a arrancar en CPU
+    environment:
+      - PYTHONUNBUFFERED=1
+      - WHISPER_FORCE_CPU=1
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./app:/app
+      - ./uploads:/app/uploads
+      - whisper_cache:/root/.cache
+    command: >
+      bash -c "streamlit run app.py
+        --server.port=8501
+        --server.address=0.0.0.0"
+volumes:
+  whisper_cache:

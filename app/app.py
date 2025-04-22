@@ -86,14 +86,16 @@ if uploaded_file:
         st.write(f" Duración: {float(info['format']['duration']):.2f}s | Canales: {info['streams'][0]['channels']} |  Sample Rate: {info['streams'][0]['sample_rate']} Hz")
 
         # ========== Transcripción con Whisper ==========
-        model = whisper.load_model("base")  # podés cambiar a "small", "medium", etc.
+
+        device = "cpu" if os.getenv("WHISPER_FORCE_CPU") == "1" else "cuda"
+        model = whisper.load_model("base", device=device) # podés cambiar a "small", "medium", etc.
 
         with st.spinner(" Transcribiendo..."):
             try:
                 result = model.transcribe(output_path)
             except RuntimeError as e:
                 if "device-side assert triggered" in str(e):
-                    st.warning("⚠️ Falla en GPU, reintentando en CPU…")
+                    st.warning(" Falla en GPU, reintentando en CPU…")
                     model_cpu = whisper.load_model("base", device="cpu")
                     result = model_cpu.transcribe(output_path)
                 else:

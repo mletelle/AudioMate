@@ -40,7 +40,7 @@ Ideal para estudiantes, profesionales e investigadores que necesitan generar tra
 
 ##  Requisitos
 
-- **Hardware**: CPU mínimo i5, GPU NVIDIA (opcional pero recomendado).  
+- **Hardware**: CPU mínimo i5 o R7, GPU NVIDIA (opcional pero recomendado).  
 - **Software**:  
   - Docker **>= 20.10**  
   - Docker Compose **v2** (plugin `docker compose`)  
@@ -68,13 +68,18 @@ Luego abrí en tu navegador: http://localhost:8501
 ### 2. Con Docker (solo CPU)
 Si no tenés GPU o no querés configurar CUDA:
 ```bash
+# 1. Clonar repo
+git clone https://github.com/mletelle/audiomate.git
+cd audiomate
+
+# 2. Build & up
 docker compose -f docker-compose.cpu.yml up -d --build
 ```
 >NOTA: previamente deberás cambiar la imagen base en Dockerfile a python:3.11-slim y forzar --device=cpu en Whisper
 
 ---
 ## Uso
-1. Subí tu archivo de audio (MP3, WAV o M4A; máx. 200 MB).
+1. Subí tu archivo de audio (MP3, WAV o M4A).
 2. Esperá mientras:
     - FFmpeg convierte a WAV mono 16 kHz.
     - Whisper transcribe (GPU o CPU).
