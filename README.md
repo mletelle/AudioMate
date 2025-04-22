@@ -11,7 +11,7 @@ Ideal para estudiantes, profesionales e investigadores que necesitan generar tra
 
 ## Tabla de contenidos
 
-1. [Características](#-características)  
+1. [Características](#-características)   
 2. [Requisitos](#-requisitos)  
 3. [Instalación](#-instalación)  
    - [Con Docker + GPU (recomendado)](#con-docker--gpu-recomendado)  
