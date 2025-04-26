@@ -47,11 +47,6 @@ if uploaded_file:
             st.error(" Solo se permiten archivos .mp3, .m4a o .wav.")
             st.stop()
 
-        mime_type, _ = mimetypes.guess_type(filename)
-        if mime_type not in ["audio/mpeg", "audio/wav", "audio/mp4", "audio/x-m4a"]:
-            st.error(" Tipo de archivo no permitido.")
-            st.stop()
-
         with open(save_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
 
