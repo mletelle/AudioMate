@@ -12,18 +12,15 @@ Ideal para estudiantes, profesionales e investigadores que necesitan generar tra
 
 ## Tabla de contenidos
 
-1. [Características](#-características)   
+1. [Características](#-características)  
 2. [Requisitos](#-requisitos)  
 3. [Instalación](#-instalación)  
-   - [Con Docker + GPU (recomendado)](#con-docker--gpu-recomendado)  
-   - [Con Docker (solo CPU)](#con-docker-solo-cpu)  
+   - [Con Docker + GPU (recomendado)](#-con-docker--gpu-recomendado)  
+   - [Con Docker (solo CPU)](#-con-docker-solo-cpu)  
 4. [Uso](#-uso)  
 5. [Configuración](#-configuración)  
-6. [Estructura del proyecto](#-estructura-del-proyecto)  
-7. [Pruebas](#-pruebas)  
-8. [Troubleshooting](#-troubleshooting)  
-9. [Contribuir](#-contribuir)  
-10. [Licencia](#-licencia)
+6. [Instalación nvidia-container-toolkit](#-instalación-nvidia-container-toolkit)  
+7. [Troubleshooting](#-troubleshooting)
 
 ---
 
@@ -43,8 +40,12 @@ Ideal para estudiantes, profesionales e investigadores que necesitan generar tra
 
 - **Hardware**: CPU mínimo i5 o R7, GPU NVIDIA (opcional pero recomendado).  
 - **Software**:  
-  - Docker **>= 20.10**  
-  - Docker Compose **v2** (plugin `docker compose`)  
+  - Docker **>= 20.10**
+     - Windows: https://docs.docker.com/desktop/setup/install/windows-install/
+     - Linux: https://docs.docker.com/engine/install/ubuntu/
+  - Docker Compose **v2** (plugin `docker compose`)
+     - Linux:  https://docs.docker.com/compose/install/linux/
+     - Windows: https://docs.docker.com/compose/install/
   - (solo GPU) NVIDIA Driver **>= 535**, `nvidia-container-toolkit`  
 
 ---
@@ -92,7 +93,7 @@ docker compose -f docker-compose.cpu.yml up -d --build
 Variables de entorno (opcional)
 Variable | Descripción | Valor por defecto
 |--|--|--|
-MAX_FILE_SIZE | Tamaño máximo de subida (bytes) | 200*1024*1024 (200 MB)
+MAX_FILE_SIZE | Tamaño máximo de subida (bytes) | 200 * 1024 * 1024 (200 MB)
 WHISPER_MODEL | Modelo Whisper a cargar (tiny, base, etc.) | base
 PYTHONUNBUFFERED | Unbuffered I/O | 1
 
