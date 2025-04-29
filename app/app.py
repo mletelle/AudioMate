@@ -53,18 +53,45 @@ if uploaded_file:
         st.success(" Archivo subido y guardado correctamente.")
         logging.info(f"Archivo recibido: {filename}")
 
-        # ========== Conversión con FFmpeg ==========
-        output_path = os.path.join(UPLOAD_DIR, f"converted_{filename.rsplit('.', 1)[0]}.wav")
+# ========== Procesamiento avanzado con FFmpeg ==========
+        output_path = os.path.join(
+            UPLOAD_DIR,
+            f"processed_{filename.rsplit('.', 1)[0]}.wav"
+        )
+
+        # Cadena de filtros corregida:
+        filter_chain = (
+            # 1) Reducción de ruido: −15 dB, overlap 0.9
+            "afftdn=nr=15:om=0.9,"
+            # 2) High-pass y low-pass (sin order)
+            "highpass=f=100,"
+            "lowpass=f=8000,"
+            # 3) Limpieza de “mud” y realce de presencia/sibilantes
+            "equalizer=f=300:width_type=q:width=200:g=-4,"
+            "equalizer=f=3000:width_type=q:width=1000:g=3,"
+            "equalizer=f=6000:width_type=q:width=200:g=-3,"
+            # 4) Compresión vocal
+            "acompressor=threshold=-20dB:ratio=4:attack=5:release=200:makeup=6,"
+            # 5) Normalización de loudness y pico
+            "loudnorm=I=-16:TP=-1:LRA=7:print_format=summary"
+        )
+
         ffmpeg_cmd = [
-            "ffmpeg", "-i", save_path,
-            "-ar", "16000", "-ac", "1", output_path
+            "ffmpeg",
+            "-y",                   # <- fuerza overwrite automático
+            "-i", save_path,
+            "-af", filter_chain,
+            "-ar", "16000",
+            "-ac", "1",
+            output_path
         ]
 
-        with st.spinner("🎧 Convirtiendo a WAV mono 16 kHz..."):
+        with st.spinner(" Procesando audio (ruido → EQ → compresión → normalización)…"):
             subprocess.run(ffmpeg_cmd, check=True)
 
-        st.success(f"🎵 Conversión completada: {output_path}")
-        logging.info(f"Archivo convertido: {output_path}")
+        st.success(f" Audio procesado: {output_path}")
+        logging.info(f"ffmpeg cmd: {' '.join(ffmpeg_cmd)}")
+
 
         # ========== Validación con ffprobe ==========
         def verificar_audio(path):
@@ -146,12 +173,6 @@ if uploaded_file:
         doc.add_paragraph("")  # salto de línea
         doc.add_heading("Texto completo", level=1)
         doc.add_paragraph(transcripcion)
-        doc.add_heading("Segmentos", level=1)
-        for seg in segments:
-            doc.add_paragraph(
-                f"[{seg['start']:.2f}s – {seg['end']:.2f}s] {seg['text']}",
-                style="List Bullet"
-            )
         docx_buffer = io.BytesIO()
         doc.save(docx_buffer)
         docx_buffer.seek(0)

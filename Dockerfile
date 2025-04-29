@@ -1,28 +1,31 @@
 # ────────────────────────────────────────────────────────────────────
-#  AudioMate – Docker image con soporte GPU (CUDA 12 + PyTorch)
-#  Basado en la imagen oficial «pytorch/pytorch» para evitar reinstalar
-#  torch/cuDNN en cada build y así acelerar el tiempo de construcción.
+# AudioMate – Docker image con soporte GPU (CUDA 12 + PyTorch)
 # ────────────────────────────────────────────────────────────────────
-ARG PYTORCH_IMAGE_TAG=2.4.1-cuda12.1-cudnn9-runtime           # ver: :contentReference[oaicite:0]{index=0}
+ARG PYTORCH_IMAGE_TAG=2.4.1-cuda12.1-cudnn9-runtime
 FROM pytorch/pytorch:${PYTORCH_IMAGE_TAG}
 
-# ——— variables gDlobales ————————————————————————————————
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     DEBIAN_FRONTEND=noninteractive
 
-# ——— dependencias del sistema (ffmpeg + libsndfile) ——————————
+# Instalación de ffmpeg y libsndfile
 RUN apt-get update \
  && apt-get install -y --no-install-recommends ffmpeg libsndfile1 \
  && rm -rf /var/lib/apt/lists/*
 
-# ——— instalación de librerías Python ————————————————
-# 1) copiamos solo requirements para aprovechar la cache
+# Copio y monto requirements para cachear pip
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt \
- && rm -f /tmp/requirements.txt
+    && rm -f /tmp/requirements.txt
 
-# ——— copiado de la app (último paso ⇒ invalidación mínima) ————
+# ── Aquí pre-descargamos Whisper para que en runtime no haga pull ──
+RUN python3 - <<EOF
+import whisper
+# Carga el modelo base en CPU y lo guarda en ~/.cache/whisper
+whisper.load_model("base", device="cpu")
+EOF
+
+# Copio el resto de la app
 WORKDIR /app
 COPY . /app
 

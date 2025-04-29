@@ -1,3 +1,4 @@
+version: "3.8"
 
 services:
   audiomate:
@@ -5,21 +6,34 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: audiomate
+
+    # Exponer Streamlit
     ports:
       - "8501:8501"
-    volumes:
-      - ./app/uploads:/app/uploads
-      - whisper_cache:/root/.cache
-    # —— GPU ————————————————————————————
-    deploy:                               # funciona con `docker compose` o Swarm
-      resources:
-        reservations:
-          devices:
-            - capabilities: ["gpu"]
+
+    # Variables de entorno para GPU / Streamlit
     environment:
       - CUDA_LAUNCH_BLOCKING=1
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
+      # - STREAMLIT_SERVER_FILE_WATCHER_TYPE=poll
+
+    volumes:
+      - ./:/app:delegated
+      - ./uploads:/uploads
+      - whisper_cache:/root/.cache/whisper
+
+    command: >
+      streamlit run app/app.py
+      --server.port=8501
+      --server.address=0.0.0.0
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+
     restart: unless-stopped
 
 volumes:
