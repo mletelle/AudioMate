@@ -86,7 +86,7 @@ docker compose -f docker-compose.cpu.yml up -d --build
     - FFmpeg convierte a WAV mono 16 kHz.
     - Whisper transcribe (GPU o CPU).
 3. Descargá tu transcripción en TXT o DOCX.
-4. Opcional: revisá el historial en uploads/procesados.json.
+4. Se va a volver a ejecutar, por que cuando hacés clic en un botón de descarga, Streamlit re-ejecuta todo el script de arriba a abajo. 
 
 ---
 ## Configuración
