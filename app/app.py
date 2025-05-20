@@ -1,17 +1,21 @@
 import os
 import io
 import json
-import time
 import logging
 import subprocess
-import mimetypes
 import whisper
 import streamlit as st
 from datetime import datetime
 from docx import Document
 
+@st.cache_resource(show_spinner=False)
+def load_whisper_model(name: str, device: str):
+    with st.spinner(f" Descargando modelo Whisper '{name}'…"):
+        return whisper.load_model(name, device=device)
+    import warnings
+    warnings.filterwarnings("ignore", category=FutureWarning, module="whisper")
 
-# ========== Configuración inicial ==========
+
 logging.basicConfig(
     filename="audiomate.log",
     level=logging.INFO,
@@ -21,20 +25,17 @@ logging.basicConfig(
 UPLOAD_DIR = "uploads"
 MAX_FILE_SIZE = 1000 * 1024 * 1024  # 1000 MB
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-
 st.set_page_config(page_title="AudioMate", layout="centered")
 st.title(" AudioMate - Transcribí tu audio a texto")
 
-# ========== Subida del archivo ==========
 uploaded_file = st.file_uploader(
-    " Elegí un archivo de audio (MP3, WAV o M4A)",
+    "Elegí un archivo de audio (MP3, WAV o M4A) – Límite: hasta 1000 MB",
     type=["mp3", "wav", "m4a"],
     accept_multiple_files=False
 )
 
 if uploaded_file:
     try:
-        # Validaciones
         filename = uploaded_file.name
         file_size = uploaded_file.size
         save_path = os.path.join(UPLOAD_DIR, filename)
@@ -53,32 +54,25 @@ if uploaded_file:
         st.success(" Archivo subido y guardado correctamente.")
         logging.info(f"Archivo recibido: {filename}")
 
-# ========== Procesamiento avanzado con FFmpeg ==========
         output_path = os.path.join(
             UPLOAD_DIR,
             f"processed_{filename.rsplit('.', 1)[0]}.wav"
         )
 
-        # Cadena de filtros corregida:
         filter_chain = (
-            # 1) Reducción de ruido: −15 dB, overlap 0.9
             "afftdn=nr=15:om=0.9,"
-            # 2) High-pass y low-pass (sin order)
             "highpass=f=100,"
             "lowpass=f=8000,"
-            # 3) Limpieza de “mud” y realce de presencia/sibilantes
             "equalizer=f=300:width_type=q:width=200:g=-4,"
             "equalizer=f=3000:width_type=q:width=1000:g=3,"
             "equalizer=f=6000:width_type=q:width=200:g=-3,"
-            # 4) Compresión vocal
             "acompressor=threshold=-20dB:ratio=4:attack=5:release=200:makeup=6,"
-            # 5) Normalización de loudness y pico
             "loudnorm=I=-16:TP=-1:LRA=7:print_format=summary"
         )
 
         ffmpeg_cmd = [
             "ffmpeg",
-            "-y",                   # <- fuerza overwrite automático
+            "-y",                   
             "-i", save_path,
             "-af", filter_chain,
             "-ar", "16000",
@@ -93,7 +87,6 @@ if uploaded_file:
         logging.info(f"ffmpeg cmd: {' '.join(ffmpeg_cmd)}")
 
 
-        # ========== Validación con ffprobe ==========
         def verificar_audio(path):
             """Devuelve metadatos de un archivo de audio usando ffprobe."""
             cmd = [
@@ -107,19 +100,20 @@ if uploaded_file:
         info = verificar_audio(output_path)
         st.write(f" Duración: {float(info['format']['duration']):.2f}s | Canales: {info['streams'][0]['channels']} |  Sample Rate: {info['streams'][0]['sample_rate']} Hz")
 
-        # ========== Transcripción con Whisper ==========
-
         device = "cpu" if os.getenv("WHISPER_FORCE_CPU") == "1" else "cuda"
-        model = whisper.load_model("base", device=device) # podés cambiar a "small", "medium", etc.
+        model_name = "small"  # o "base", "medium", "large"
+        model = load_whisper_model(model_name, device)
+        logging.info(f"Whisper model loaded: {model_name} on {device}")
+
 
         with st.spinner(" Transcribiendo..."):
             try:
-                result = model.transcribe(output_path)
+                result = model.transcribe(output_path, language="es")
             except RuntimeError as e:
                 if "device-side assert triggered" in str(e):
                     st.warning(" Falla en GPU, reintentando en CPU…")
-                    model_cpu = whisper.load_model("base", device="cpu")
-                    result = model_cpu.transcribe(output_path)
+                    model_cpu = whisper.load_model("small", device="cpu")
+                    result = model_cpu.transcribe(output_path, language="es")
                 else:
                     raise
 
@@ -145,7 +139,6 @@ if uploaded_file:
                 height=200
             )
 
-        # ========== Descarga de archivos ==========
         fecha = datetime.now().strftime("%Y-%m-%d")
         nombre_base = filename.rsplit('.', 1)[0]
 
@@ -165,7 +158,7 @@ if uploaded_file:
         )
 
 
-        # ========== DOCX ==========
+        #  DOCX
         doc = Document()
         doc.add_heading("Transcripción de audio", level=0)
         doc.add_paragraph(f"Archivo original: {filename}")
@@ -183,7 +176,6 @@ if uploaded_file:
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
 
-        # ========== Registro JSON de actividad ==========
         registro_path = os.path.join(UPLOAD_DIR, "procesados.json")
         registro = []
         if os.path.exists(registro_path):
@@ -203,7 +195,6 @@ if uploaded_file:
         with open(registro_path, "w", encoding="utf-8") as f:
             json.dump(registro, f, ensure_ascii=False, indent=2)
 
-        # ========== Limpieza ==========
         removed = 0
         for f in os.listdir(UPLOAD_DIR):
             if f.lower().endswith((".mp3", ".wav", ".m4a")):

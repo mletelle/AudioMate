@@ -9,6 +9,7 @@ __pycache__/
 venv/
 .env/
 *.env
+.venv
 
 # Logs
 *.log
@@ -25,7 +26,6 @@ logs/
 *.sqlite3
 
 # Streamlit
-.streamlit/config.toml
 .streamlit/secrets.toml
 
 # Archivos generados por AudioMate

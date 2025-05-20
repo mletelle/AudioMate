@@ -8,7 +8,15 @@ __pycache__/
 .git
 .gitignore
 .vscode
-*.wav
-*.mp3
 node_modules/
 uploads/
+.env
+.venv
+.cache/
+uploads/
+*.wav
+*.mp3
+docs/
+tests/
+.vscode/
+.git/
