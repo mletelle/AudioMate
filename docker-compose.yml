@@ -1,40 +1,38 @@
-version: "3.8"
 
 services:
   audiomate:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: audiomate
+    build: .
+    container_name: audiomate-gpu
 
-    # Exponer Streamlit
-    ports:
-      - "8501:8501"
+    runtime: nvidia
+    deploy:
+      resources:
+        limits:
+          cpus: "12"
+          memory: 32G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
 
-    # Variables de entorno para GPU / Streamlit
     environment:
-      - CUDA_LAUNCH_BLOCKING=1
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
-      # - STREAMLIT_SERVER_FILE_WATCHER_TYPE=poll
+      OMP_NUM_THREADS: "12"
+      WHISPER_MODEL: large-v2
+      WHISPER_COMPUTE_TYPE: float16
+      WHISPER_FORCE_CPU: "0"
 
     volumes:
       - ./:/app:delegated
       - ./uploads:/uploads
       - whisper_cache:/root/.cache/whisper
+      - torch_cache:/root/.cache/torch
 
-    command: >
-      streamlit run app/app.py
-      --server.port=8501
-      --server.address=0.0.0.0
-
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: ["gpu"]
-
+    ports:
+      - "8501:8501"
+    shm_size: "2g"
     restart: unless-stopped
 
 volumes:
   whisper_cache:
+  torch_cache:

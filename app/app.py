@@ -3,18 +3,9 @@ import io
 import json
 import logging
 import subprocess
-import whisper
 import streamlit as st
 from datetime import datetime
 from docx import Document
-
-@st.cache_resource(show_spinner=False)
-def load_whisper_model(name: str, device: str):
-    with st.spinner(f" Descargando modelo Whisper '{name}'…"):
-        return whisper.load_model(name, device=device)
-    import warnings
-    warnings.filterwarnings("ignore", category=FutureWarning, module="whisper")
-
 
 logging.basicConfig(
     filename="audiomate.log",
@@ -101,8 +92,17 @@ if uploaded_file:
         st.write(f" Duración: {float(info['format']['duration']):.2f}s | Canales: {info['streams'][0]['channels']} |  Sample Rate: {info['streams'][0]['sample_rate']} Hz")
 
         device = "cpu" if os.getenv("WHISPER_FORCE_CPU") == "1" else "cuda"
-        model_name = "small"  # o "base", "medium", "large"
-        model = load_whisper_model(model_name, device)
+        model_name = os.getenv("WHISPER_MODEL", "large-v2")
+        compute_type = os.getenv("WHISPER_COMPUTE_TYPE", "float16")
+        from faster_whisper import WhisperModel
+        model = WhisperModel(
+            model_name,
+            device=device,
+            compute_type=compute_type,
+            download_root=os.environ.get("WHISPER_CACHE", ".cache/whisper")
+        )
+
+
         logging.info(f"Whisper model loaded: {model_name} on {device}")
 
 
@@ -112,8 +112,12 @@ if uploaded_file:
             except RuntimeError as e:
                 if "device-side assert triggered" in str(e):
                     st.warning(" Falla en GPU, reintentando en CPU…")
-                    model_cpu = whisper.load_model("small", device="cpu")
-                    result = model_cpu.transcribe(output_path, language="es")
+                    model_cpu = WhisperModel("small",
+                                            device="cpu",
+                                            compute_type="int8")
+                    result = model_cpu.transcribe(output_path,
+                                                language="es")
+
                 else:
                     raise
 
