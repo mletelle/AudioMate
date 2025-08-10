@@ -7,7 +7,8 @@ ENV PYTHONUNBUFFERED=1 \
     DEBIAN_FRONTEND=noninteractive \
     # rutas de caché locales
     TORCH_HOME=/root/.cache/torch \
-    WHISPER_CACHE=/root/.cache/whisper
+    WHISPER_CACHE=/root/.cache/whisper \
+    LD_LIBRARY_PATH=/opt/conda/lib/python3.11/site-packages/torch/lib:${LD_LIBRARY_PATH}
 
 # ffmpeg , libsndfile)
 RUN apt-get update && \
