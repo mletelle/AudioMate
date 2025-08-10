@@ -53,12 +53,6 @@ jobs:
           coverage run -m pytest --maxfail=1 --disable-warnings -q
           coverage xml
 
-      - name: Run tests with coverage
-        run: |
-          pip install coverage codecov
-          coverage run -m pytest --maxfail=1 --disable-warnings -q
-          coverage xml
-
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
