@@ -17,6 +17,5 @@ uploads/
 *.wav
 *.mp3
 docs/
-tests/
 .vscode/
 .git/

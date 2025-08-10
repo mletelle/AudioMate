@@ -1,19 +1,23 @@
-DOCKER_COMPOSE ?= docker compose        # o "docker-compose" si usás la versión legacy
+# Makefile
+DOCKER_COMPOSE ?= docker compose  
 
-build:            ## Construir la imagen
+build: 
 	$(DOCKER_COMPOSE) build
 
-up:               ## Levantar contenedor en segundo plano
+up:
 	$(DOCKER_COMPOSE) up -d
 
-logs:             ## Ver logs en vivo
+logs: 
 	$(DOCKER_COMPOSE) logs -f
 
-down:             ## Apagar y borrar contenedores
+down:
 	$(DOCKER_COMPOSE) down
 
-shell:            ## Shell dentro del contenedor
-	$(DOCKER_COMPOSE) exec audiomate bash
+shell:
+	$(DOCKER_COMPOSE) exec audiomate sh
 
 test-gpu:
-	${DOCKER_COMPOSE} exec audiomate python test_gpu.py
+	${DOCKER_COMPOSE} exec audiomate python -m pytest tests/test_gpu.py
+
+test:
+	${DOCKER_COMPOSE} exec audiomate python -m pytest tests/
