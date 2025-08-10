@@ -11,19 +11,18 @@ def test_gpu_model_loading():
     print("--- Verificación de Dispositivo y Modelo ---")
 
     cuda_available = torch.cuda.is_available()
-    print(f"🧠 CUDA disponible: {cuda_available}")
+    print(f" CUDA disponible: {cuda_available}")
 
     if cuda_available:
-        print(f"🚀 Dispositivo GPU: {torch.cuda.get_device_name(0)}")
+        print(f" Dispositivo GPU: {torch.cuda.get_device_name(0)}")
         device = "cuda"
         compute_type = "float16"
     else:
-        print("🐌 Usando CPU.")
+        print(" Usando CPU.")
         device = "cpu"
         compute_type = "int8"
 
-    print("📦 Cargando modelo faster-whisper (tiny)...")
-    # Usamos el WHISPER_CACHE definido en el Dockerfile para evitar descargas repetidas
+    print(" Cargando modelo faster-whisper (tiny)...")
     cache_dir = os.getenv("WHISPER_CACHE", "/root/.cache/whisper")
     
     model = WhisperModel(
@@ -33,8 +32,5 @@ def test_gpu_model_loading():
         download_root=cache_dir
     )
 
-    # Verificamos que el modelo se haya cargado en el dispositivo correcto
-    # En faster-whisper, el dispositivo se gestiona internamente,
-    # pero podemos asegurar que el objeto se creó correctamente.
     assert model.device == device, f"El modelo no se cargó en el dispositivo esperado ({device})"
-    print(f"✅ Modelo cargado exitosamente en: {model.device}")
+    print(f" Modelo cargado exitosamente en: {model.device}")

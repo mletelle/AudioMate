@@ -41,6 +41,18 @@ jobs:
           pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install --no-cache-dir -r requirements.txt
 
+      - name: Set up Whisper cache directory
+        run: |
+          mkdir -p .cache/whisper
+
+      - name: Run tests with coverage
+        env:
+          WHISPER_CACHE: .cache/whisper
+        run: |
+          pip install coverage codecov
+          coverage run -m pytest --maxfail=1 --disable-warnings -q
+          coverage xml
+
       - name: Run tests with coverage
         run: |
           pip install coverage codecov
