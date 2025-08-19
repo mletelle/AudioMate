@@ -3,3 +3,5 @@ pydub
 faster-whisper  # usa el torch incluido en la imagen base
 python-docx
 pytest          # sólo para tests
+psutil
+nvidia-ml-py
